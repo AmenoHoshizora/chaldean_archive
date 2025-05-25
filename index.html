@@ -4,7 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Chaldean Archive</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.jquery.com;">
+    <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self' https://*.jquery.com;
+    style-src 'self' 'unsafe-inline' https://*.jquery.com;
+    script-src 'self' 'unsafe-inline' https://*.jquery.com;
+    img-src 'self' data: https://*.jquery.com;
+    connect-src 'self' chaldean-archive-h44pvheri-amenohoshizoras-projects.vercel.app;
+    ">
+    <link rel="icon" href="frontend/images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
     <style>
         body {
