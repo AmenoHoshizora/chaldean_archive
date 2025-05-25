@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Chaldean Archive</title>
     <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self' https://*.jquery.com;
-    style-src 'self' 'unsafe-inline' https://*.jquery.com;
+    default-src 'self';
     script-src 'self' 'unsafe-inline' https://*.jquery.com;
+    style-src 'self' 'unsafe-inline' https://*.jquery.com;
     img-src 'self' data: https://*.jquery.com;
-    connect-src 'self' chaldean-archive-h44pvheri-amenohoshizoras-projects.vercel.app;
+    connect-src 'self' https://chaldean-archive-h44pvheri-amenohoshizoras-projects.vercel.app;
+    font-src 'self' https://*.jquery.com;
     ">
     <link rel="icon" href="frontend/images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
@@ -402,14 +403,18 @@
 
     async function fetchServants() {
         try {
-            const response = await fetch('https://your-vercel-app.vercel.app/servants');
-            if (!response.ok) throw new Error('Network error');
-            servantData = await response.json(); // Populate the array
-            displayServants(); // Now render the data
+            const response = await fetch('https://chaldean-archive-h44pvheri-amenohoshizoras-projects.vercel.app/servants');
+            if (!response.ok) throw new Error('Network response was not ok');
+            servantData = await response.json();
+            displayServants();
         } catch (error) {
             console.error('Fetch error:', error);
-            servantData = []; // Fallback empty array
-        }
+            $("#servant-grid").html(`
+                <div class="error-message">
+                    <p>Failed to load servant data.</p>
+                    <button onclick="fetchServants()">Retry</button>
+                </div>
+            `);
         if (!servantData || servantData.length === 0) {
             console.warn('No servant data loaded');
             $("#servant-grid").html("<p>Error loading data. Please refresh.</p>");
