@@ -43,4 +43,19 @@ app.get('/api/servants', async (req, res) => {
   }
 });
 
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from frontend
+  app.use(express.static(path.join(__dirname, 'frontend')));
+  
+  // Handle SPA routing
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+  });
+}
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 module.exports = app;
