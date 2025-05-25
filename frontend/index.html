@@ -467,7 +467,7 @@
 
         async function fetchServants() {
             try {
-                const response = await fetch('/api/servants');
+                const response = await fetch('https://your-vercel-app.vercel.app/servants');
                 if (!response.ok) throw new Error('Network response was not ok');
                 return await response.json();
             } catch (error) {
