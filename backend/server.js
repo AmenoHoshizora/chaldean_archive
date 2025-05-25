@@ -9,7 +9,12 @@ const app = express();
 const sql = neon(process.env.DATABASE_URL);
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://AmenoHoshizora.github.io',
+    'http://localhost:3000'                  
+  ]
+}));
 app.use(express.json());
 
 // Routes
