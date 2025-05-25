@@ -398,6 +398,25 @@
     </div>
 
     <script>
+    let servantData = []; // Initialize empty array
+
+    async function fetchServants() {
+        try {
+            const response = await fetch('https://your-vercel-app.vercel.app/servants');
+            if (!response.ok) throw new Error('Network error');
+            servantData = await response.json(); // Populate the array
+            displayServants(); // Now render the data
+        } catch (error) {
+            console.error('Fetch error:', error);
+            servantData = []; // Fallback empty array
+        }
+        if (!servantData || servantData.length === 0) {
+            console.warn('No servant data loaded');
+            $("#servant-grid").html("<p>Error loading data. Please refresh.</p>");
+            return;
+        }
+            }
+
     $(document).on("pagecreate", function () {
         $(".dropdown-toggle").off("click").on("click", function () {
             $(this).next(".dropdown-menu").slideToggle("fast");
@@ -407,177 +426,167 @@
             $(".dropdown-menu").slideUp("fast");
         });
 
-        async function fetchServants() {
-            try {
-                const response = await fetch('https://your-vercel-app.vercel.app/servants');
-                if (!response.ok) throw new Error('Network response was not ok');
-                return await response.json();
-            } catch (error) {
-                console.error('Error fetching servant data:', error);
-                return [];
-            }
-        }
-
-        let currentPage = 1;
-        const itemsPerPage = 12;
-        let filteredServants = [...servantData];
-        
-        // View toggle functionality
-        $("#grid-view").on("click", function() {
-            $(this).addClass("active");
-            $("#list-view").removeClass("active");
-            $("#servant-grid").show();
-            $("#servant-list").hide();
-        });
-        
-        $("#list-view").on("click", function() {
-            $(this).addClass("active");
-            $("#grid-view").removeClass("active");
-            $("#servant-grid").hide();
-            $("#servant-list").show();
-        });
-        
-        // Pagination functionality
-        $("#prev-page").on("click", function() {
-            if (currentPage > 1) {
-                currentPage--;
-                displayServants();
-            }
-        });
-        
-        $("#next-page").on("click", function() {
-            const totalPages = Math.ceil(filteredServants.length / itemsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                displayServants();
-            }
-        });
-        
-        // Search functionality
-        $("#servant-search").on("input", function() {
-            currentPage = 1;
-            filterServants();
-            displayServants();
-        });
-        
-        // Filter functionality
-        $(".filter-select").on("change", function() {
-            currentPage = 1;
-            filterServants();
-            displayServants();
-        });
-        
-        function filterServants() {
-            const searchTerm = $("#servant-search").val().toLowerCase();
-            const classFilter = $("#class-filter").val();
-            const rarityFilter = $("#rarity-filter").val();
-            const alignmentFilter = $("#alignment-filter").val();
+        fetchServants().then(() => {
+            let currentPage = 1;
+            const itemsPerPage = 12;
+            let filteredServants = [...servantData];
             
-            filteredServants = servantData.filter(servant => {
-                // Search filter
-                const matchesSearch = 
-                    servant.name.toLowerCase().includes(searchTerm) ||
-                    (servant.aka && servant.aka.toLowerCase().includes(searchTerm)) ||
-                    servant.class.toLowerCase().includes(searchTerm);
-                
-                // Class filter
-                const matchesClass = !classFilter || servant.class === classFilter;
-                
-                // Alignment filter (simplified for this example)
-                const matchesAlignment = !alignmentFilter || 
-                    servant.alignments.includes(alignmentFilter);
-                
-                // Note: Rarity isn't in our sample data, but you would add that filter here
-                
-                return matchesSearch && matchesClass && matchesAlignment;
+            // View toggle functionality
+            $("#grid-view").on("click", function() {
+                $(this).addClass("active");
+                $("#list-view").removeClass("active");
+                $("#servant-grid").show();
+                $("#servant-list").hide();
             });
-        }
-        
-        function displayServants() {
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedServants = filteredServants.slice(startIndex, endIndex);
             
-            // Update grid view
-            const gridContainer = $("#servant-grid");
-            gridContainer.empty();
+            $("#list-view").on("click", function() {
+                $(this).addClass("active");
+                $("#grid-view").removeClass("active");
+                $("#servant-grid").hide();
+                $("#servant-list").show();
+            });
             
-            // Update list view
-            const listContainer = $("#servant-list");
-            listContainer.empty();
+            // Pagination functionality
+            $("#prev-page").on("click", function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    displayServants();
+                }
+            });
             
-            if (paginatedServants.length === 0) {
-                gridContainer.html("<p>No servants found matching your criteria.</p>");
-                listContainer.html("<p>No servants found matching your criteria.</p>");
-            } else {
-                paginatedServants.forEach(servant => {
-                    // Create grid card
-                    const card = `
-                        <div class="servant-card">
-                            <div class="servant-name">${servant.name}</div>
-                            <div class="servant-class">${servant.class}</div>
-                            <img class="servant-image" src="images/servants/${servant.id}.jpg" alt="${servant.name}" onerror="this.src='images/servants/default.jpg'">
-                            <div class="servant-stats">
-                                <div class="servant-stat">
-                                    <span class="servant-stat-name">Strength:</span>
-                                    <span>${servant.strength}</span>
-                                </div>
-                                <div class="servant-stat">
-                                    <span class="servant-stat-name">Endurance:</span>
-                                    <span>${servant.endurance}</span>
-                                </div>
-                                <div class="servant-stat">
-                                    <span class="servant-stat-name">Agility:</span>
-                                    <span>${servant.agility}</span>
-                                </div>
-                                <div class="servant-stat">
-                                    <span class="servant-stat-name">Mana:</span>
-                                    <span>${servant.mana}</span>
-                                </div>
-                                <div class="servant-stat">
-                                    <span class="servant-stat-name">Luck:</span>
-                                    <span>${servant.luck}</span>
-                                </div>
-                                <div class="servant-stat">
-                                    <span class="servant-stat-name">NP:</span>
-                                    <span>${servant.np}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    gridContainer.append(card);
+            $("#next-page").on("click", function() {
+                const totalPages = Math.ceil(filteredServants.length / itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    displayServants();
+                }
+            });
+            
+            // Search functionality
+            $("#servant-search").on("input", function() {
+                currentPage = 1;
+                filterServants();
+                displayServants();
+            });
+            
+            // Filter functionality
+            $(".filter-select").on("change", function() {
+                currentPage = 1;
+                filterServants();
+                displayServants();
+            });
+            
+            function filterServants() {
+                const searchTerm = $("#servant-search").val().toLowerCase();
+                const classFilter = $("#class-filter").val();
+                const rarityFilter = $("#rarity-filter").val();
+                const alignmentFilter = $("#alignment-filter").val();
+                
+                filteredServants = servantData.filter(servant => {
+                    // Search filter
+                    const matchesSearch = 
+                        servant.name.toLowerCase().includes(searchTerm) ||
+                        (servant.aka && servant.aka.toLowerCase().includes(searchTerm)) ||
+                        servant.class.toLowerCase().includes(searchTerm);
                     
-                    // Create list item
-                    const listItem = `
-                        <div class="servant-list-item">
-                            <div class="servant-list-header">
-                                <div class="servant-list-name">${servant.name}</div>
-                                <div class="servant-list-class">${servant.class}</div>
-                            </div>
-                            <div class="servant-list-details">
-                                <div><strong>AKA:</strong> ${servant.aka || "N/A"}</div>
-                                <div><strong>Voice Actor:</strong> ${servant.voice_actor}</div>
-                                <div><strong>Illustrator:</strong> ${servant.illustrator}</div>
-                                <div><strong>Alignment:</strong> ${servant.alignments}</div>
-                                <div><strong>Attribute:</strong> ${servant.attribute}</div>
-                                <div><strong>Gender:</strong> ${servant.gender}</div>
-                            </div>
-                        </div>
-                    `;
-                    listContainer.append(listItem);
+                    // Class filter
+                    const matchesClass = !classFilter || servant.class === classFilter;
+                    
+                    // Alignment filter (simplified for this example)
+                    const matchesAlignment = !alignmentFilter || 
+                        servant.alignments.includes(alignmentFilter);
+                    
+                    // Note: Rarity isn't in our sample data, but you would add that filter here
+                    
+                    return matchesSearch && matchesClass && matchesAlignment;
                 });
             }
             
-            // Update pagination controls
-            const totalPages = Math.ceil(filteredServants.length / itemsPerPage);
-            $("#page-info").text(`Page ${currentPage} of ${totalPages}`);
-            $("#prev-page").prop("disabled", currentPage === 1);
-            $("#next-page").prop("disabled", currentPage === totalPages || totalPages === 0);
-        }
-        
-        // Initial display
+            function displayServants() {
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const paginatedServants = filteredServants.slice(startIndex, endIndex);
+                
+                // Update grid view
+                const gridContainer = $("#servant-grid");
+                gridContainer.empty();
+                
+                // Update list view
+                const listContainer = $("#servant-list");
+                listContainer.empty();
+                
+                if (paginatedServants.length === 0) {
+                    gridContainer.html("<p>No servants found matching your criteria.</p>");
+                    listContainer.html("<p>No servants found matching your criteria.</p>");
+                } else {
+                    paginatedServants.forEach(servant => {
+                        // Create grid card
+                        const card = `
+                            <div class="servant-card">
+                                <div class="servant-name">${servant.name}</div>
+                                <div class="servant-class">${servant.class}</div>
+                                <img class="servant-image" src="images/servants/${servant.id}.jpg" alt="${servant.name}" onerror="this.src='images/servants/default.jpg'">
+                                <div class="servant-stats">
+                                    <div class="servant-stat">
+                                        <span class="servant-stat-name">Strength:</span>
+                                        <span>${servant.strength}</span>
+                                    </div>
+                                    <div class="servant-stat">
+                                        <span class="servant-stat-name">Endurance:</span>
+                                        <span>${servant.endurance}</span>
+                                    </div>
+                                    <div class="servant-stat">
+                                        <span class="servant-stat-name">Agility:</span>
+                                        <span>${servant.agility}</span>
+                                    </div>
+                                    <div class="servant-stat">
+                                        <span class="servant-stat-name">Mana:</span>
+                                        <span>${servant.mana}</span>
+                                    </div>
+                                    <div class="servant-stat">
+                                        <span class="servant-stat-name">Luck:</span>
+                                        <span>${servant.luck}</span>
+                                    </div>
+                                    <div class="servant-stat">
+                                        <span class="servant-stat-name">NP:</span>
+                                        <span>${servant.np}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        gridContainer.append(card);
+                        
+                        // Create list item
+                        const listItem = `
+                            <div class="servant-list-item">
+                                <div class="servant-list-header">
+                                    <div class="servant-list-name">${servant.name}</div>
+                                    <div class="servant-list-class">${servant.class}</div>
+                                </div>
+                                <div class="servant-list-details">
+                                    <div><strong>AKA:</strong> ${servant.aka || "N/A"}</div>
+                                    <div><strong>Voice Actor:</strong> ${servant.voice_actor}</div>
+                                    <div><strong>Illustrator:</strong> ${servant.illustrator}</div>
+                                    <div><strong>Alignment:</strong> ${servant.alignments}</div>
+                                    <div><strong>Attribute:</strong> ${servant.attribute}</div>
+                                    <div><strong>Gender:</strong> ${servant.gender}</div>
+                                </div>
+                            </div>
+                        `;
+                        listContainer.append(listItem);
+                    });
+                }
+                
+                // Update pagination controls
+                const totalPages = Math.ceil(filteredServants.length / itemsPerPage);
+                $("#page-info").text(`Page ${currentPage} of ${totalPages}`);
+                $("#prev-page").prop("disabled", currentPage === 1);
+                $("#next-page").prop("disabled", currentPage === totalPages || totalPages === 0);
+            }
+            
         filterServants();
         displayServants();
+        });
     });
     </script>
 </body>
