@@ -10,6 +10,7 @@ const sql = neon(process.env.DATABASE_URL);
 app.use(cors({
   origin: [
     'https://amenohoshizora.github.io',
+    'https://chaldean-archive-h44pvheri-amenohoshizoras-projects.vercel.app/servants'
     'http://localhost:3000'                  
   ]
 }));
